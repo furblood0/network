@@ -1,3 +1,6 @@
+import sys
+import os
+sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '../src')))
 import socket
 import time
 from protocol import encode_message, decode_message, decode_user_list, encode_ack, decode_ack
@@ -10,45 +13,45 @@ server_addr = (HOST, PORT)
 sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
 sock.settimeout(2)
 
-print('--- Fonksiyonellik Testi Başladı ---')
+print('--- Functionality Test Started ---')
 
-# 1. Katılma mesajı gönder
+# 1. Send join message
 join_msg = encode_message(USERNAME, '', seq=1, msg_type='join')
 sock.sendto(join_msg, server_addr)
-print('[TEST] Katılma mesajı gönderildi.')
+print('[TEST] Join message sent.')
 
-# 2. Kullanıcı listesi veya sistem mesajı bekle
+# 2. Wait for user list or system message
 try:
     data, addr = sock.recvfrom(4096)
     users = decode_user_list(data)
     if users:
-        print(f'[TEST] Kullanıcı listesi alındı: {users}')
+        print(f'[TEST] User list received: {users}')
     else:
-        print(f'[TEST] Sistem mesajı veya başka bir mesaj alındı.')
+        print(f'[TEST] System message or another message received.')
 except socket.timeout:
-    print('[TEST] Kullanıcı listesi/sistem mesajı alınamadı (timeout).')
+    print('[TEST] User list/system message not received (timeout).')
 
-# 3. Sohbete mesaj gönder
-chat_msg = encode_message(USERNAME, 'Merhaba, bu bir test mesajıdır.', seq=2, msg_type='chat', timestamp=time.strftime('%H:%M:%S'))
+# 3. Send chat message
+chat_msg = encode_message(USERNAME, 'Hello, this is a test message.', seq=2, msg_type='chat', timestamp=time.strftime('%H:%M:%S'))
 sock.sendto(chat_msg, server_addr)
-print('[TEST] Sohbet mesajı gönderildi.')
+print('[TEST] Chat message sent.')
 
-# 4. ACK veya başka mesaj bekle
+# 4. Wait for ACK or another message
 try:
     data, addr = sock.recvfrom(4096)
     ack_seq = decode_ack(data)
     if ack_seq is not None:
-        print(f'[TEST] ACK alındı (seq={ack_seq})')
+        print(f'[TEST] ACK received (seq={ack_seq})')
     else:
         username, message, seq, msg_type, timestamp = decode_message(data)
-        print(f'[TEST] Mesaj alındı: {username}: {message}')
+        print(f'[TEST] Message received: {username}: {message}')
 except socket.timeout:
-    print('[TEST] Mesaj/ACK alınamadı (timeout).')
+    print('[TEST] Message/ACK not received (timeout).')
 
-# 5. Ayrılma mesajı gönder
+# 5. Send leave message
 leave_msg = encode_message(USERNAME, '', seq=3, msg_type='leave')
 sock.sendto(leave_msg, server_addr)
-print('[TEST] Ayrılma mesajı gönderildi.')
+print('[TEST] Leave message sent.')
 
 sock.close()
-print('--- Fonksiyonellik Testi Bitti ---')
+print('--- Functionality Test Finished ---')

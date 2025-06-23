@@ -50,7 +50,8 @@ network/
     latency_per_message.png
     success_pie.png
   reports/
-    rapor.docx
+    Report.md
+    Presentation.pptx
   requirements.txt
 ```
 
@@ -106,8 +107,8 @@ python src/client.py
 - If icons do not appear, check that `assets/bequickchat.png` and `assets/close.png` exist and are valid PNG files.
 
 ## Authors
-- [Your Name]
-- [Your Team Members]
+- [Furkan Fidan]
+- [Beyza Nur Selvi]
 
 ## License
 This project is for educational purposes. 
