@@ -102,9 +102,37 @@ BeQuickChat is a modern, multi-user chat application with a custom UDP protocol 
 
 ---
 
-## 11. Screenshots (Optional)
+## 11. Screenshots
 
-> You can add screenshots of the main window, private chat tab, and user list here.
+Aşağıda uygulamanın farklı bölümlerine ait ekran görüntüleri yer almaktadır:
+
+### Ana Pencere
+
+![Ana Pencere](../assets/ss1.png)
+
+### Giriş Ekranı
+
+![Giriş Ekranı](../assets/ss2.png)
+
+### Kullanıcı Listesi ve Sohbet
+
+![Kullanıcı Listesi ve Sohbet](../assets/ss3.png)
+
+### Özel Mesajlaşma
+
+![Özel Mesajlaşma](../assets/ss4.png)
+
+### Sistem Mesajı ve Bildirimler
+
+![Sistem Mesajı ve Bildirimler](../assets/ss5.png)
+
+### Performans Testi Sonuçları
+
+![Performans Testi Sonuçları](../assets/ss6.png)
+
+### Başarı Oranı Grafiği
+
+![Başarı Oranı Grafiği](../assets/ss7.png)
 
 ---
 
