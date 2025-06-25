@@ -306,6 +306,7 @@ class ChatClientUI(QWidget):
     PyQt5 multi-user UDP chat client with modern UI.
     """
     def __init__(self, username="User", host=DEFAULT_HOST, port=DEFAULT_PORT):
+        """Initialize the chat client UI, socket, and background listener."""
         super().__init__()
         self.username = username
         self.host = host
@@ -329,6 +330,7 @@ class ChatClientUI(QWidget):
         self.private_tabs = {}
 
     def init_ui(self):
+        """Set up the main window layout, menu, chat tabs, and user list."""
         self.setWindowTitle(f"BeQuickChat - {self.username}")
         self.resize(800, 500)
         # Menu bar
@@ -407,11 +409,13 @@ class ChatClientUI(QWidget):
         self.message_input.setFocus()
 
     def resizeEvent(self, event):
+        """Handle window resize events for responsive UI."""
         super().resizeEvent(event)
         # Sohbet kutusunun genişliğini input_container'a uygula
         self.input_container.setFixedWidth(self.tabs.width())
 
     def open_private_tab(self, item):
+        """Open a new private chat tab when a user is double-clicked."""
         user = item.text()
         if user == self.username:
             return  # No private message to self
@@ -436,6 +440,7 @@ class ChatClientUI(QWidget):
         self.update_tab_close_button(idx)
 
     def close_tab(self, index):
+        """Close the selected chat tab."""
         if index == 0:
             return  # General chat tab cannot be closed
         user = self.tabs.tabText(index)
@@ -450,22 +455,19 @@ class ChatClientUI(QWidget):
         self.update_tab_close_button(self.tabs.currentIndex())
 
     def update_tab_close_button(self, idx):
+        """Update the close button visibility for tabs."""
         if idx == 0:
             self.tabs.setTabsClosable(False)
         else:
             self.tabs.setTabsClosable(True)
 
     def send_join(self):
-        """
-        Sunucuya katılma mesajı gönderir.
-        """
+        """Send a join message to the server when connecting."""
         join_msg = encode_message(self.username, "", seq=0, msg_type="join")
         self.sock.sendto(encrypt_message(join_msg), self.server_addr)
 
     def reliable_send(self, msg, seq, max_retries=5, timeout=1.0):
-        """
-        UDP üzerinden güvenilir mesaj gönderimi sağlar (ACK ve tekrar deneme ile).
-        """
+        """Send a message reliably, retrying until ACK is received or max retries reached."""
         ack_received = threading.Event()
         def wait_for_ack():
             while not ack_received.is_set() and self.running:
@@ -491,6 +493,7 @@ class ChatClientUI(QWidget):
         ack_received.set()  # Thread'i sonlandır
 
     def show_private_message(self, from_user, priv_msg, priv_timestamp, direction):
+        """Display a private message in the appropriate tab."""
         if from_user not in self.private_tabs:
             scroll = QScrollArea()
             scroll.setWidgetResizable(True)
@@ -521,6 +524,7 @@ class ChatClientUI(QWidget):
         chat_area.verticalScrollBar().setValue(chat_area.verticalScrollBar().maximum())
 
     def add_chat_bubble(self, text, timestamp, is_own=False):
+        """Add a chat bubble to the chat area (own or others' message)."""
         bubble = ChatBubble(text, timestamp, is_own)
         container = QWidget()
         hbox = QHBoxLayout()
@@ -534,6 +538,7 @@ class ChatClientUI(QWidget):
         self.general_chat_area.verticalScrollBar().setValue(self.general_chat_area.verticalScrollBar().maximum())
 
     def add_system_message(self, text, timestamp):
+        """Display a system message in the chat area."""
         label = QLabel(f'<span style="color: #2e8b57;">[{timestamp}] System: {text}</span>')
         label.setTextFormat(Qt.RichText)
         label.setAlignment(Qt.AlignCenter)
@@ -542,10 +547,7 @@ class ChatClientUI(QWidget):
         self.general_chat_area.verticalScrollBar().setValue(self.general_chat_area.verticalScrollBar().maximum())
 
     def on_send(self):
-        """
-        Mesaj gönderme butonuna basıldığında veya Enter'a basıldığında çalışır.
-        Mesajı gönderir ve kendi mesajını baloncuk olarak ekler.
-        """
+        """Handle the send button click or Enter key to send a message."""
         msg = self.message_input.text().strip()
         channel = self.channel_select.currentText()
         if not msg:
@@ -566,10 +568,7 @@ class ChatClientUI(QWidget):
         self.message_input.clear()
 
     def listen_server(self):
-        """
-        Sunucudan gelen UDP paketlerini dinler ve ilgili işlemleri yapar.
-        Kullanıcı listesi, sistem mesajı, özel mesaj ve genel mesajları işler.
-        """
+        """Background thread: listen for incoming messages from the server."""
         while self.running:
             try:
                 data, addr = self.sock.recvfrom(4096)
@@ -617,11 +616,13 @@ class ChatClientUI(QWidget):
                 break
 
     def update_user_list(self, users):
+        """Update the user list widget with currently online users."""
         self.user_list.clear()
         for user in users:
             self.user_list.addItem(user)
 
     def closeEvent(self, event):
+        """Handle the window close event, send leave message, and clean up."""
         leave_msg = encode_message(self.username, "", seq=0, msg_type="leave")
         self.sock.sendto(encrypt_message(leave_msg), self.server_addr)
         self.running = False
@@ -629,6 +630,7 @@ class ChatClientUI(QWidget):
         event.accept()
 
     def show_account_info(self):
+        """Show the account information dialog."""
         info = f"Username: {self.username}\nServer: {self.host}\nPort: {self.port}"
         QMessageBox.information(self, "Info", info)
 

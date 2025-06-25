@@ -15,9 +15,7 @@ last_seen_seq = {}  # addr: last seen seq (duplicate prevention)
 # =====================
 
 def send_user_list(server):
-    """
-    Sends the current user list to all connected clients.
-    """
+    """Send the current user list to all connected clients."""
     user_list = list(usernames.values())
     data = encode_user_list(user_list)
     for client_addr in clients:
@@ -27,9 +25,7 @@ def send_user_list(server):
             pass
 
 def reliable_send(server, msg, client_addr, seq, max_retries=3, timeout=0.5):
-    """
-    Provides reliable message sending over UDP (with ACK and retry).
-    """
+    """Send a message reliably over UDP using ACK and retry mechanism."""
     ack_received = False
     server.settimeout(timeout)
     for _ in range(max_retries):
@@ -54,10 +50,7 @@ def reliable_send(server, msg, client_addr, seq, max_retries=3, timeout=0.5):
 # =====================
 
 def main():
-    """
-    Main UDP server loop. Handles incoming packets and processes them by message type.
-    Manages user join/leave, general and private messages, and system messages.
-    """
+    """Main UDP server loop: handles incoming packets, user join/leave, chat, and private messages."""
     server = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
     server.bind((HOST, PORT))
     print(f"[SERVER] UDP listening: {HOST}:{PORT}")
