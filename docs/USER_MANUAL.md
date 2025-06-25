@@ -137,4 +137,10 @@ Aşağıda uygulamanın farklı bölümlerine ait ekran görüntüleri yer almak
 
 ## 12. Contact
 
-For any issues or suggestions, please contact the project maintainer. 
+For any issues or suggestions, please contact the project maintainer.
+
+---
+
+## 13. Security Notice
+
+All chat messages are encrypted with AES before being sent over the network. However, there is currently no user authentication (login/password). For additional security, avoid sharing sensitive information. 

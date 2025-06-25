@@ -16,6 +16,7 @@ BeQuickChat is a modern, multi-user chat application built with Python and PyQt5
 - **Modern GUI:** Chat bubbles, user list, custom window icon, and responsive design.
 - **Customizable:** Easily change the app icon and chat bubble styles.
 - **Duplicate Prevention:** Sequence numbers to prevent duplicate messages.
+- **End-to-End Encryption:** All messages are encrypted using AES before being sent over the network.
 
 ## Installation
 
@@ -84,6 +85,8 @@ python src/client.py
   - Sender retransmits if ACK is not received (up to N times).
 - **Duplicate Prevention:**  
   - Each client tracks seen sequence numbers per sender.
+- **Encryption:**  
+  - All messages are encrypted with AES (CBC mode) before transmission, ensuring confidentiality over the network.
 
 ## Testing
 - **Functional Test:**  
@@ -97,7 +100,7 @@ python src/client.py
 - **Performance:**  
   Reliable UDP is implemented, but under heavy load or high packet loss, some delays may occur.
 - **Limitations:**  
-  - No encryption (can be added as an extra feature).
+  - No authentication (can be added as an extra feature).
   - Not tested on MacOS (works on Windows/Linux).
   - No file transfer or emoji support.
 

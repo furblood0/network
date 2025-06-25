@@ -1,7 +1,7 @@
 import socket
 import threading
 import time
-from protocol import encode_message, decode_message, encode_user_list, encode_system_message, encode_ack, decode_ack, decode_private_message
+from protocol import encode_message, decode_message, encode_user_list, encode_system_message, encode_ack, decode_ack, decode_private_message, encrypt_message, decrypt_message
 
 HOST = '0.0.0.0'
 PORT = 8000
@@ -22,7 +22,7 @@ def send_user_list(server):
     data = encode_user_list(user_list)
     for client_addr in clients:
         try:
-            server.sendto(data, client_addr)
+            server.sendto(encrypt_message(data), client_addr)
         except:
             pass
 
@@ -33,9 +33,13 @@ def reliable_send(server, msg, client_addr, seq, max_retries=3, timeout=0.5):
     ack_received = False
     server.settimeout(timeout)
     for _ in range(max_retries):
-        server.sendto(msg, client_addr)
+        server.sendto(encrypt_message(msg), client_addr)
         try:
             data, addr = server.recvfrom(4096)
+            try:
+                data = decrypt_message(data)
+            except Exception:
+                pass
             ack_seq = decode_ack(data)
             if addr == client_addr and ack_seq == seq:
                 ack_received = True
@@ -60,6 +64,10 @@ def main():
     while True:
         try:
             data, addr = server.recvfrom(4096)
+            try:
+                data = decrypt_message(data)
+            except Exception:
+                pass
         except (ConnectionResetError, OSError):
             continue  # Continue loop on error, don't crash server
         username, message, seq, msg_type, timestamp = decode_message(data)
@@ -72,7 +80,7 @@ def main():
         if from_user and to_user and priv_msg:
             # Send ACK
             ack = encode_ack(priv_seq)
-            server.sendto(ack, addr)
+            server.sendto(encrypt_message(ack), addr)
             # Find target user
             target_addr = None
             for a, uname in usernames.items():
@@ -113,7 +121,7 @@ def main():
             last_seen_seq[addr].add(seq)
             # Send ACK
             ack = encode_ack(seq)
-            server.sendto(ack, addr)
+            server.sendto(encrypt_message(ack), addr)
             print(f"[MSG] {username}: {message}")
             # Relay message to other clients reliably
             for client_addr in clients:

@@ -7,7 +7,7 @@ from PyQt5.QtWidgets import (
     QLabel, QListWidget, QComboBox, QSizePolicy, QDialog, QFormLayout, QDialogButtonBox, QTabWidget, QTabBar, QMenuBar, QAction, QMessageBox, QScrollArea
 )
 from PyQt5.QtCore import Qt, pyqtSignal, QObject, QMetaObject, Q_ARG
-from protocol import decode_user_list, encode_message, decode_message, decode_system_message, encode_ack, decode_ack, encode_private_message, decode_private_message
+from protocol import decode_user_list, encode_message, decode_message, decode_system_message, encode_ack, decode_ack, encode_private_message, decode_private_message, encrypt_message, decrypt_message
 from time import strftime
 
 DEFAULT_HOST = '127.0.0.1'
@@ -260,10 +260,6 @@ class Communicate(QObject):
     add_system_message_signal = pyqtSignal(str, str)  # text, timestamp
 
 class ChatBubble(QWidget):
-    """
-    Sohbet mesajlarını baloncuk şeklinde gösteren özel widget.
-    is_own=True ise solda, False ise sağda ve yeşil baloncukta gösterir.
-    """
     def __init__(self, text, timestamp, is_own=False):
         super().__init__()
         self.label = QLabel(text)
@@ -416,9 +412,6 @@ class ChatClientUI(QWidget):
         self.input_container.setFixedWidth(self.tabs.width())
 
     def open_private_tab(self, item):
-        """
-        Kullanıcı listesinde bir kullanıcıya çift tıklanınca özel sohbet sekmesi açar.
-        """
         user = item.text()
         if user == self.username:
             return  # No private message to self
@@ -443,9 +436,6 @@ class ChatClientUI(QWidget):
         self.update_tab_close_button(idx)
 
     def close_tab(self, index):
-        """
-        Özel sohbet sekmesini kapatır.
-        """
         if index == 0:
             return  # General chat tab cannot be closed
         user = self.tabs.tabText(index)
@@ -460,10 +450,6 @@ class ChatClientUI(QWidget):
         self.update_tab_close_button(self.tabs.currentIndex())
 
     def update_tab_close_button(self, idx):
-        """
-        Sekme kapatma butonunu günceller.
-        """
-        # Sadece özel sekmelerde çarpı göster
         if idx == 0:
             self.tabs.setTabsClosable(False)
         else:
@@ -474,7 +460,7 @@ class ChatClientUI(QWidget):
         Sunucuya katılma mesajı gönderir.
         """
         join_msg = encode_message(self.username, "", seq=0, msg_type="join")
-        self.sock.sendto(join_msg, self.server_addr)
+        self.sock.sendto(encrypt_message(join_msg), self.server_addr)
 
     def reliable_send(self, msg, seq, max_retries=5, timeout=1.0):
         """
@@ -485,6 +471,10 @@ class ChatClientUI(QWidget):
             while not ack_received.is_set() and self.running:
                 try:
                     data, _ = self.sock.recvfrom(4096)
+                    try:
+                        data = decrypt_message(data)
+                    except Exception:
+                        pass
                     ack_seq = decode_ack(data)
                     if ack_seq == seq:
                         ack_received.set()
@@ -496,18 +486,12 @@ class ChatClientUI(QWidget):
         for _ in range(max_retries):
             if ack_received.is_set():
                 break
-            self.sock.sendto(msg, self.server_addr)
+            self.sock.sendto(encrypt_message(msg), self.server_addr)
             time.sleep(timeout)
         ack_received.set()  # Thread'i sonlandır
 
     def show_private_message(self, from_user, priv_msg, priv_timestamp, direction):
-        """
-        Özel sohbet sekmesine baloncuklu mesaj ekler.
-        direction: 'from' ise karşıdan, 'to' ise kendinden gelen mesaj.
-        """
-        # Sekme yoksa aç
         if from_user not in self.private_tabs:
-            # Baloncuklu özel sohbet alanı
             scroll = QScrollArea()
             scroll.setWidgetResizable(True)
             chat_widget = QWidget()
@@ -517,7 +501,6 @@ class ChatClientUI(QWidget):
             scroll.setWidget(chat_widget)
             idx = self.tabs.addTab(scroll, from_user)
             self.private_tabs[from_user] = idx
-            # Her sekmeye chat_layout referansı ekle
             self.tabs.widget(idx).chat_layout = chat_layout
             self.tabs.widget(idx).chat_area = scroll
             self.tabs.setTabsClosable(True)
@@ -525,7 +508,6 @@ class ChatClientUI(QWidget):
         chat_layout = self.tabs.widget(idx).chat_layout
         chat_area = self.tabs.widget(idx).chat_area
         t = priv_timestamp if priv_timestamp else "--:--:--"
-        # Baloncuk ekle
         bubble = ChatBubble(f"{from_user if direction == 'from' else 'You'}: {priv_msg}", t, direction != "from")
         container = QWidget()
         hbox = QHBoxLayout()
@@ -591,6 +573,10 @@ class ChatClientUI(QWidget):
         while self.running:
             try:
                 data, addr = self.sock.recvfrom(4096)
+                try:
+                    data = decrypt_message(data)
+                except Exception:
+                    pass
                 ack_seq = decode_ack(data)
                 if ack_seq is not None:
                     continue
@@ -611,7 +597,7 @@ class ChatClientUI(QWidget):
                             continue
                         self.last_seen_seq.add((from_user, priv_seq))
                         ack = encode_ack(priv_seq)
-                        self.sock.sendto(ack, addr)
+                        self.sock.sendto(encrypt_message(ack), addr)
                         self.comm.open_private_tab_signal.emit(from_user, priv_msg, priv_timestamp, "from")
                         continue
                     username, message, seq, msg_type, msg_timestamp = decode_message(data)
@@ -620,7 +606,7 @@ class ChatClientUI(QWidget):
                             continue
                         self.last_seen_seq.add((username, seq))
                         ack = encode_ack(seq)
-                        self.sock.sendto(ack, addr)
+                        self.sock.sendto(encrypt_message(ack), addr)
                         t = msg_timestamp if msg_timestamp else "--:--:--"
                         if username == self.username:
                             # Kendi mesajını tekrar baloncuk olarak ekleme
@@ -631,28 +617,18 @@ class ChatClientUI(QWidget):
                 break
 
     def update_user_list(self, users):
-        """
-        Kullanıcı listesini günceller.
-        """
         self.user_list.clear()
         for user in users:
             self.user_list.addItem(user)
 
     def closeEvent(self, event):
-        """
-        Pencere kapatılırken sunucuya ayrılma bildirimi gönderir.
-        """
-        # Sunucuya ayrılma bildirimi gönder
         leave_msg = encode_message(self.username, "", seq=0, msg_type="leave")
-        self.sock.sendto(leave_msg, self.server_addr)
+        self.sock.sendto(encrypt_message(leave_msg), self.server_addr)
         self.running = False
         self.sock.close()
         event.accept()
 
     def show_account_info(self):
-        """
-        Kullanıcıya hesap bilgilerini gösterir.
-        """
         info = f"Username: {self.username}\nServer: {self.host}\nPort: {self.port}"
         QMessageBox.information(self, "Info", info)
 

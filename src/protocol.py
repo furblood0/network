@@ -1,5 +1,11 @@
 import json
 import time
+from Crypto.Cipher import AES
+from Crypto.Util.Padding import pad, unpad
+import base64
+
+AES_KEY = b'mysecretkey12345'  # 16, 24 veya 32 byte olmalı
+AES_IV = b'1234567890abcdef'   # 16 byte IV
 
 def encode_message(username, message, seq=0, msg_type="chat", timestamp=None):
     if timestamp is None:
@@ -99,4 +105,15 @@ def decode_private_message(data):
             )
         return None, None, None, 0, None
     except Exception:
-        return None, None, None, 0, None 
+        return None, None, None, 0, None
+
+def encrypt_message(raw: bytes) -> bytes:
+    cipher = AES.new(AES_KEY, AES.MODE_CBC, AES_IV)
+    ct_bytes = cipher.encrypt(pad(raw, AES.block_size))
+    return base64.b64encode(ct_bytes)
+
+def decrypt_message(enc: bytes) -> bytes:
+    cipher = AES.new(AES_KEY, AES.MODE_CBC, AES_IV)
+    ct = base64.b64decode(enc)
+    pt = unpad(cipher.decrypt(ct), AES.block_size)
+    return pt 

@@ -3,7 +3,7 @@ import os
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '../src')))
 import socket
 import time
-from protocol import encode_message, decode_message, decode_user_list, encode_ack, decode_ack
+from protocol import encode_message, decode_message, decode_user_list, encode_ack, decode_ack, encrypt_message, decrypt_message
 
 HOST = '127.0.0.1'
 PORT = 8000
@@ -17,12 +17,16 @@ print('--- Functionality Test Started ---')
 
 # 1. Send join message
 join_msg = encode_message(USERNAME, '', seq=1, msg_type='join')
-sock.sendto(join_msg, server_addr)
+sock.sendto(encrypt_message(join_msg), server_addr)
 print('[TEST] Join message sent.')
 
 # 2. Wait for user list or system message
 try:
     data, addr = sock.recvfrom(4096)
+    try:
+        data = decrypt_message(data)
+    except Exception:
+        pass
     users = decode_user_list(data)
     if users:
         print(f'[TEST] User list received: {users}')
@@ -33,12 +37,16 @@ except socket.timeout:
 
 # 3. Send chat message
 chat_msg = encode_message(USERNAME, 'Hello, this is a test message.', seq=2, msg_type='chat', timestamp=time.strftime('%H:%M:%S'))
-sock.sendto(chat_msg, server_addr)
+sock.sendto(encrypt_message(chat_msg), server_addr)
 print('[TEST] Chat message sent.')
 
 # 4. Wait for ACK or another message
 try:
     data, addr = sock.recvfrom(4096)
+    try:
+        data = decrypt_message(data)
+    except Exception:
+        pass
     ack_seq = decode_ack(data)
     if ack_seq is not None:
         print(f'[TEST] ACK received (seq={ack_seq})')
@@ -50,7 +58,7 @@ except socket.timeout:
 
 # 5. Send leave message
 leave_msg = encode_message(USERNAME, '', seq=3, msg_type='leave')
-sock.sendto(leave_msg, server_addr)
+sock.sendto(encrypt_message(leave_msg), server_addr)
 print('[TEST] Leave message sent.')
 
 sock.close()
