@@ -634,7 +634,8 @@ class ChatClientUI(QWidget):
         info = f"Username: {self.username}\nServer: {self.host}\nPort: {self.port}"
         QMessageBox.information(self, "Info", info)
 
-if __name__ == "__main__":
+def main():
+    """Ana istemci fonksiyonu."""
     app = QApplication(sys.argv)
     app.setStyleSheet(QSS)
     login = LoginDialog()
@@ -644,4 +645,7 @@ if __name__ == "__main__":
         port = login.port
         window = ChatClientUI(username, host, port)
         window.show()
-        sys.exit(app.exec_()) 
+        sys.exit(app.exec_())
+
+if __name__ == "__main__":
+    main() 

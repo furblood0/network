@@ -4,6 +4,9 @@ PyQt5>=5.15.0
 # Data Visualization
 matplotlib>=3.5.0
 
+# Encryption
+pycryptodome>=3.15.0
+
 # Standard library imports (built-in, no installation needed):
 # - socket
 # - threading
