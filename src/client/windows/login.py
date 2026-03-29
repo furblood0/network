@@ -1,4 +1,4 @@
-"""
+﻿"""
 Giriş / kayıt ekranı.
 """
 
@@ -14,7 +14,7 @@ from ..styles import C, LOGIN_QSS
 class LoginWindow(QWidget):
     def __init__(self):
         super().__init__()
-        self.setWindowTitle("BeQuickChat")
+        self.setWindowTitle("NetChat")
         self.setFixedSize(420, 540)
         self.setStyleSheet(LOGIN_QSS)
         self._worker: NetworkWorker | None = None
@@ -42,7 +42,7 @@ class LoginWindow(QWidget):
 
         root.addSpacing(10)
 
-        title = QLabel("BeQuickChat")
+        title = QLabel("NetChat")
         title.setObjectName("title")
         title.setAlignment(Qt.AlignCenter)
         root.addWidget(title)

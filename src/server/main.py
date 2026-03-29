@@ -1,5 +1,5 @@
-"""
-BeQuickChat — asyncio TCP Sunucu giriş noktası.
+﻿"""
+NetChat — asyncio TCP Sunucu giriş noktası.
 
 Desteklenen mesaj tipleri (client → server):
   register            {username, password}
@@ -103,7 +103,7 @@ async def main() -> None:
     init_db()
     server = await asyncio.start_server(_handle, HOST, PORT)
     addrs = ", ".join(str(s.getsockname()) for s in server.sockets)
-    log.info("BeQuickChat sunucusu dinliyor → %s", addrs)
+    log.info("NetChat sunucusu dinliyor → %s", addrs)
     async with server:
         await server.serve_forever()
 

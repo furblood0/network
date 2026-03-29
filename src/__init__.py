@@ -1,5 +1,5 @@
-"""
-BeQuickChat — TCP tabanlı çok kullanıcılı masaüstü sohbet uygulaması.
+﻿"""
+NetChat — TCP tabanlı çok kullanıcılı masaüstü sohbet uygulaması.
 
 Paketler:
     client:   PyQt5 tabanlı GUI istemcisi

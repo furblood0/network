@@ -1,5 +1,5 @@
 """
-Renk paleti ve QSS stil tanımları.
+Renk paleti ve QSS stil tanımları — WhatsApp tarzı koyu yeşil tema.
 """
 
 C = {
@@ -72,7 +72,11 @@ QPushButton#btn_secondary:disabled {{ color: {C['dim']}; border-color: {C['dim']
 """
 
 APP_QSS = f"""
-QMainWindow, QWidget {{ background: {C['bg']}; color: {C['text']}; font-family: "Segoe UI", sans-serif; }}
+QMainWindow, QWidget {{
+    background: {C['bg']};
+    color: {C['text']};
+    font-family: "Segoe UI", sans-serif;
+}}
 QScrollBar:vertical {{
     background: transparent; width: 5px; margin: 0;
 }}

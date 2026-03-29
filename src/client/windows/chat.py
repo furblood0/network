@@ -1,4 +1,4 @@
-"""
+﻿"""
 Ana sohbet penceresi.
 """
 
@@ -29,7 +29,7 @@ class ChatWindow(QMainWindow):
         self._known_users: set[str]       = set()
         self._pending_receipts: dict[str, list] = {}
 
-        self.setWindowTitle(f"BeQuickChat — {username}")
+        self.setWindowTitle(f"NetChat — {username}")
         self.setMinimumSize(900, 620)
         self.setStyleSheet(APP_QSS)
 
