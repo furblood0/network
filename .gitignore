@@ -141,4 +141,9 @@ Thumbs.db
 # Project specific
 *.log
 *.tmp
-*.temp 
+*.temp
+
+# Veritabanı
+chat.db
+chat.db-shm
+chat.db-wal

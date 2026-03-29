@@ -1,164 +1,120 @@
-# BeQuickChat - UDP Tabanlı Çok Kullanıcılı Sohbet Uygulaması
+# BeQuickChat
 
-[![Python](https://img.shields.io/badge/Python-3.8+-blue.svg)](https://www.python.org/downloads/)
+[![Python](https://img.shields.io/badge/Python-3.12+-blue.svg)](https://www.python.org/downloads/)
 [![PyQt5](https://img.shields.io/badge/PyQt5-5.15+-green.svg)](https://pypi.org/project/PyQt5/)
 [![License](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
 
-BeQuickChat, Python ve PyQt5 kullanılarak geliştirilmiş modern, çok kullanıcılı bir sohbet uygulamasıdır. UDP soketleri ve özel protokol kullanarak güvenilir mesajlaşma sağlar.
+BeQuickChat, Python ve PyQt5 ile geliştirilmiş TCP tabanlı çok kullanıcılı masaüstü sohbet uygulamasıdır.
 
-## 🌟 Özellikler
+## Özellikler
 
-- **Çok Kullanıcılı Sohbet:** Genel ve özel mesajlaşma
-- **Güvenilir UDP Mesajlaşma:** ACK ve yeniden iletim mekanizması
-- **Gerçek Zamanlı Kullanıcı Listesi:** Bağlı kullanıcıları anlık görüntüleme
-- **Sistem Mesajları:** Katılma/ayrılma bildirimleri
-- **Modern GUI:** Sohbet baloncukları, kullanıcı listesi, özel pencere ikonu
-- **Çapraz Platform Desteği:** Windows ve Linux'ta çalışır
-- **Uçtan Uca Şifreleme:** AES ile tüm mesajlar şifrelenir
-- **Özel Mesajlaşma:** Kullanıcıya çift tıklayarak özel sohbet sekmesi açma
+- Kayıt / Giriş sistemi (PBKDF2-SHA256 şifre hash'leme)
+- Genel sohbet odası ve özel (bire bir) mesajlaşma
+- Mesaj geçmişi (SQLite kalıcılığı)
+- Okundu bilgisi (✓ → ✓✓)
+- Gerçek zamanlı çevrimiçi kullanıcı listesi
+- Katılma / ayrılma sistem bildirimleri
+- WhatsApp tarzı koyu tema
 
-## 📋 Gereksinimler
+## Gereksinimler
 
-- Python 3.8+
+- Python 3.12+
 - PyQt5 >= 5.15.0
-- matplotlib >= 3.5.0 (performans testleri için)
-- pycryptodome (şifreleme için)
 
-## 🚀 Kurulum
+## Kurulum
 
-### 1. Projeyi klonlayın
 ```bash
-git clone https://github.com/yourusername/bequickchat.git
-cd bequickchat
-```
-
-### 2. Bağımlılıkları yükleyin
-```bash
+git clone https://github.com/furblood0/network.git
+cd network
 pip install -r requirements.txt
 ```
 
-## 💻 Kullanım
+## Çalıştırma
 
-### Sunucuyu Başlatın
+### 1. Sunucuyu başlatın
+
 ```bash
-python src/server.py
+python run_server.py
 ```
 
-### İstemciyi Başlatın
+Sunucu `0.0.0.0:9000` adresinde dinlemeye başlar.
+
+### 2. İstemciyi başlatın
+
 ```bash
-python src/client.py
+python run_client.py
 ```
 
-1. Kullanıcı adınızı ve sunucu adresini girin (varsayılan: 127.0.0.1:8000)
-2. Genel sohbette mesajlaşmaya başlayın
-3. Özel mesaj için kullanıcı listesinden birine çift tıklayın
+Giriş ekranında sunucu IP adresini, kullanıcı adınızı ve şifrenizi girin.  
+Hesabınız yoksa **Hesap Oluştur** butonuyla kayıt olabilirsiniz.
 
-## 📁 Proje Yapısı
+> Aynı ağdaki birden fazla bilgisayarda istemci çalıştırarak test edebilirsiniz.  
+> Yerel test için sunucu IP alanını `127.0.0.1` bırakın.
+
+## Proje Yapısı
 
 ```
-bequickchat/
-├── src/
-│   ├── client.py          # PyQt5 GUI istemcisi
-│   ├── server.py          # UDP sunucu
-│   └── protocol.py        # Mesaj protokolü ve şifreleme
-├── tests/
-│   ├── test_functional.py # Temel işlevsellik testleri
-│   ├── test_full.py       # Kapsamlı testler
-│   └── test_performance.py # Performans testleri
-├── docs/
-│   ├── README.md          # Detaylı dokümantasyon
-│   └── USER_MANUAL.md     # Kullanıcı kılavuzu
-├── assets/
-│   ├── bequickchat.png    # Uygulama ikonu
-│   ├── close.png          # Sekme kapatma ikonu
-│   └── [test_results]/    # Test sonuçları
-├── reports/
-│   ├── Report.pdf         # Proje raporu
-│   └── Presentation.pptx  # Sunum
-├── requirements.txt       # Python bağımlılıkları
-└── README.md             # Bu dosya
+network/
+├── run_client.py          # İstemci giriş noktası
+├── run_server.py          # Sunucu giriş noktası
+├── requirements.txt
+└── src/
+    ├── config.py          # Uygulama geneli sabitler (HOST, PORT, DB_PATH…)
+    ├── protocol.py        # TCP mesaj çerçeveleme (4-byte uzunluk + JSON)
+    ├── database/
+    │   ├── schema.py      # Tablo tanımları ve init_db()
+    │   └── queries.py     # Kullanıcı, mesaj ve okundu sorguları
+    ├── server/
+    │   ├── state.py       # Çevrimiçi kullanıcı haritası ve gönderim yardımcıları
+    │   ├── handlers.py    # Mesaj tiplerine göre handler fonksiyonları
+    │   └── main.py        # asyncio giriş noktası (_handle döngüsü)
+    └── client/
+        ├── styles.py      # Renk paleti ve QSS stil tanımları
+        ├── network.py     # NetworkWorker (arka plan TCP okuma/yazma)
+        ├── main.py        # QApplication ve koyu tema kurulumu
+        ├── widgets/
+        │   ├── bubble.py      # Mesaj balonu
+        │   ├── chat_area.py   # Kaydırılabilir mesaj alanı
+        │   └── user_row.py    # Sol panel kullanıcı satırı
+        └── windows/
+            ├── login.py   # Giriş / kayıt ekranı
+            └── chat.py    # Ana sohbet penceresi
 ```
 
-## 🔧 Protokol Tasarımı
+## Protokol
 
-### Mesaj Yapısı
-Her mesaj şunları içerir:
-- `username`: Gönderen kullanıcı adı
-- `message`: Mesaj içeriği
-- `seq`: Benzersiz sıra numarası
-- `msg_type`: Mesaj türü (join, leave, chat, private)
-- `timestamp`: Zaman damgası
+Her TCP mesajı `4 byte büyük-endian uzunluk + UTF-8 JSON payload` şeklinde çerçevelenir.
 
-### Güvenilirlik
-- Her mesajın benzersiz bir sıra numarası vardır
-- Alıcı her mesaj için ACK gönderir
-- ACK alınmazsa gönderici yeniden iletir (N kez)
-- Çift mesaj önleme: Her istemci gönderen başına görülen sıra numaralarını takip eder
+### İstemci → Sunucu
 
-### Şifreleme
-- Tüm mesajlar AES (CBC modu) ile şifrelenir
-- Ağ üzerinde gizlilik sağlanır
+| Tip                   | Alanlar                        |
+|-----------------------|--------------------------------|
+| `register`            | `username`, `password`         |
+| `login`               | `username`, `password`         |
+| `chat`                | `content`                      |
+| `private`             | `recipient`, `content`         |
+| `get_private_history` | `with`                         |
+| `read_receipt`        | `msg_id`, `sender`             |
 
-## 🧪 Testler
+### Sunucu → İstemci
 
-### İşlevsel Test
-```bash
-python tests/test_functional.py
-```
-Temel katılma, sohbet ve ayrılma işlevselliğini kontrol eder.
+| Tip               | Alanlar                                          |
+|-------------------|--------------------------------------------------|
+| `register_result` | `ok`, `reason`                                   |
+| `auth_ok`         | `username`                                       |
+| `auth_fail`       | `reason`                                         |
+| `history`         | `messages`                                       |
+| `private_history` | `with`, `messages`                               |
+| `chat`            | `msg_id`, `sender`, `content`, `timestamp`       |
+| `private`         | `msg_id`, `sender`, `recipient`, `content`, `timestamp` |
+| `user_list`       | `users`                                          |
+| `system`          | `content`                                        |
+| `read_receipt`    | `msg_id`, `reader`                               |
 
-### Kapsamlı Test
-```bash
-python tests/test_full.py
-```
-İki simüle edilmiş istemci ile daha kapsamlı test.
+## Geliştiri
 
-### Performans Testi
-```bash
-python tests/test_performance.py
-```
-Gecikme ve başarı oranı grafikleri oluşturur (matplotlib gerekli).
+- **Furkan Fidan**
 
-## 🎨 Özelleştirme
+## Lisans
 
-- **Uygulama İkonu:** `assets/bequickchat.png` dosyasını değiştirin
-- **Sekme Kapatma İkonu:** `assets/close.png` dosyasını değiştirin
-- **Sohbet Baloncuk Stilleri:** `src/client.py` dosyasındaki `ChatBubble` sınıfını düzenleyin
-
-## ⚠️ Sınırlamalar
-
-- Kimlik doğrulama yok (ek özellik olarak eklenebilir)
-- MacOS'ta test edilmemiş (Windows/Linux'ta çalışır)
-- Dosya transferi veya emoji desteği yok
-
-## 🐛 Sorun Giderme
-
-- `ConnectionResetError` alırsanız, sunucunun çalıştığından ve erişilebilir olduğundan emin olun
-- GUI sorunları için PyQt5'in yüklü olduğundan ve Python sürümünün uyumlu olduğundan emin olun
-- İkonlar görünmüyorsa `assets/bequickchat.png` ve `assets/close.png` dosyalarının var olduğunu ve geçerli PNG dosyaları olduğunu kontrol edin
-
-## 👥 Geliştiriciler
-
-- **Beyza Nur Selvi** - 222010020057
-- **Furkan Fidan** - 212010020002
-
-## 📄 Lisans
-
-Bu proje eğitim amaçlıdır. MIT lisansı altında lisanslanmıştır.
-
-## 🤝 Katkıda Bulunma
-
-1. Bu depoyu fork edin
-2. Yeni bir özellik dalı oluşturun (`git checkout -b feature/amazing-feature`)
-3. Değişikliklerinizi commit edin (`git commit -m 'Add some amazing feature'`)
-4. Dalınıza push edin (`git push origin feature/amazing-feature`)
-5. Bir Pull Request oluşturun
-
-## 📞 İletişim
-
-Proje hakkında sorularınız için:
-- GitHub Issues: [Proje Issues Sayfası](https://github.com/yourusername/bequickchat/issues)
-
----
-
-⭐ Bu projeyi beğendiyseniz yıldız vermeyi unutmayın! 
+MIT
