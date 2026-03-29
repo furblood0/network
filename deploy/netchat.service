@@ -1,0 +1,16 @@
+[Unit]
+Description=NetChat TCP Server
+After=network.target
+
+[Service]
+Type=simple
+User=netchat
+WorkingDirectory=/opt/netchat
+ExecStart=/usr/bin/python3 /opt/netchat/run_server.py
+Restart=always
+RestartSec=5
+StandardOutput=journal
+StandardError=journal
+
+[Install]
+WantedBy=multi-user.target
